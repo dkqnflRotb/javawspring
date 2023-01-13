@@ -195,12 +195,16 @@ public class BoardController {
 	@ResponseBody
 	@RequestMapping(value = "/boardReplyInput", method=RequestMethod.POST)
 	public String boardReplyInputPost(BoardReplyVO replyVo) {
-		int levelOrder = 0;
+		int levelOrder = 1;
 		int Dcheck=0;
 		BoardReplyVO replyVo1 = boardService.getMaxLevelOrder(replyVo.getBoardIdx());
-		System.out.println("replyVo1.getDcheck() = " +replyVo1.getDcheck());
-		if(replyVo1.getMaxlevelOrder() != 0) levelOrder = replyVo1.getMaxlevelOrder() + 1;
-		Dcheck = replyVo1.getDcheck() + 1;
+		
+		if(replyVo1!=null) {
+			System.out.println("replyVo1 = " +replyVo1);
+			System.out.println("replyVo1.getDcheck() = " +replyVo1.getDcheck());
+			if(replyVo1.getMaxlevelOrder() != 0) levelOrder = replyVo1.getMaxlevelOrder() + 1;
+			Dcheck = replyVo1.getDcheck() + 1;
+		}
 
 		
 		System.out.println("Dcheck = " + Dcheck);

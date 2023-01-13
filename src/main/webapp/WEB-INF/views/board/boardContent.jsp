@@ -15,6 +15,14 @@
 		text-align: center !important;
 		background-color : #eee;
 	}
+	#nReply{
+		cursor: pointer;
+		padding: 5px;
+	}
+	#nReply:hover{
+		background-color : #ff5722;
+    	border-radius: 16px;
+	}
   </style>
   <script>
     'use strict';
@@ -36,6 +44,16 @@
     		$("#replyHiddenBtn").show();
     	});
     	
+    });
+    
+    $(document).ready(function(){
+    	$(".mReply").show();
+    	$(".cReply1").hide();
+    	
+    	$(".nReply").click(function(){
+    		$(".cReply1").slideDown(500);
+    		
+    	});
     });
     
     function goodCheck(su) {
@@ -350,23 +368,22 @@
 	    <th class="text-center">접속IP</th>
 	    <th class="text-center">답글</th>
 	  </tr>
+	  <c:set var="i" value="0"/>
 	  <c:forEach var="replyVo" items="${replyVos}" varStatus="st">
-	    <tr <c:if test="${replyVo.level <= 0}">style="background: blanchedalmond;"</c:if>>
+	    <tr <c:if test="${replyVo.level <= 0}"> class="mReply" style="background: blanchedalmond;"</c:if><c:if test="${replyVo.level > 0}">class="cReply${replyVo.dcheck}"</c:if>>
 	      <td class="text-left" style="padding-left:${replyVo.level}em;">
+	        <c:if test="${sMid == replyVo.mid || sLevel == 0}">
+	          (<a href="javascript:replyDelCheck(${replyVo.idx})" title="삭제하기">x</a>)
+	        </c:if>
 	      	<c:if test="${replyVo.level <=0}">${replyVo.nickName}
-		      	<c:forEach var="dcheck" items="${dchecks}" varStatus="st">
-		      		${dcheck.dcheckSu }
-		      	</c:forEach>
-	      	
+		      		<font id="nReply" class="nReply" color="blue" size="0.5px">▼답글 : ${dchecks[i].dcheckSu -1}</font>
+		      		<c:set var="i" value="${i+1}" />
 	      	</c:if> <!-- 부모댓글의 경우 들여쓰기 하지 않는다. -->  
 	      	
 	      	
 	      	<c:if test="${replyVo.level >0}">
 	      		└▶ ${replyVo.nickName}
 	      	</c:if>
-	        <c:if test="${sMid == replyVo.mid || sLevel == 0}">
-	          (<a href="javascript:replyDelCheck(${replyVo.idx})" title="삭제하기">x</a>)
-	        </c:if>
 	         
 	      </td>
 	      <td style="padding-left:${replyVo.level}em;">
