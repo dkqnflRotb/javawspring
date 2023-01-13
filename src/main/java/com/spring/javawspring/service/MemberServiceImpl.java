@@ -1,5 +1,6 @@
 package com.spring.javawspring.service;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,7 +15,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.spring.javawspring.common.JavawspringProvide;
 import com.spring.javawspring.dao.MemberDAO;
 import com.spring.javawspring.vo.GuestVO;
 import com.spring.javawspring.vo.MemberVO;
@@ -42,8 +45,30 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public int setMemberJoinOk(MemberVO vo) {
-		return memberDAO.setMemberJoinOk(vo);
+	public int setMemberJoinOk(MultipartFile fName, MemberVO vo) {
+		// 업로드된 사진을 서버 파일 시스템에 저장시켜준다.
+		int res = 0;
+		try {
+			String oFileName = fName.getOriginalFilename();
+			if(oFileName.equals("")) {
+				vo.setPhoto("noimage.jpg");
+			}
+			else {
+				
+			
+				UUID uid = UUID.randomUUID();  // 파일명이 중복되지 않게 설정하기위해 써준다.
+				String saveFileName = uid + "_" + oFileName;
+				
+				JavawspringProvide ps = new JavawspringProvide();
+				ps.writeFile(fName,saveFileName, "member");
+				vo.setPhoto(saveFileName);
+			}
+			memberDAO.setMemberJoinOk(vo);
+			res = 1;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+		return res;
 	}
 
 	@Override
@@ -70,11 +95,6 @@ public class MemberServiceImpl implements MemberService {
 		}
 		// 오늘 재방문이라면 '총방문수','오늘방문수','포인트' 누적처리
 		memberDAO.setMemTotalUpdate(vo.getMid(), nowTodayPoint, todayCnt);
-	}
-
-	@Override
-	public int totRecCnt() {
-		return memberDAO.totRecCnt();
 	}
 
 	@Override
@@ -133,7 +153,22 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public List<MemberVO> getMemberList(int startIndexNo, int pageSize) {
-		return memberDAO.getMemberList(startIndexNo, pageSize);
+	public List<MemberVO> getMemberList(int startIndexNo, int pageSize, String part, String search) {
+		return memberDAO.getMemberList(startIndexNo, pageSize, part, search);
+	}
+
+	@Override
+	public void memberPwdUpdate(String mid, String pwd) {
+		memberDAO.memberPwdUpdate(mid, pwd);
+	}
+
+	@Override
+	public String getMemberIDSearch(String email, String name) {
+		return memberDAO.getMemberIDSearch(email, name);
+	}
+
+	@Override
+	public int memberDelete(String mid) {
+		return memberDAO.memberDelete(mid);
 	}
 }

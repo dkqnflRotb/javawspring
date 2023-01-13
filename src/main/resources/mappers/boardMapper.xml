@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.javawspring.dao.BoardDAO">
+	<select id="totRecCnt" resultType="int">
+		select count(*) from board2 <if test="searchString != ''"> where ${part} like concat('%',#{searchString},'%')</if>;
+	</select>
+
+	<select id="getBoardList" resultType="com.spring.javawspring.vo.BoardVO">
+		select *, datediff(now(), wDate) as day_diff, timestampdiff(hour, wDate, now()) as hour_diff, (select count(*) from boardReply2 where boardIdx=board2.idx)as replyCnt from board2 <if test="searchString != ''">where ${part} like concat('%',#{searchString},'%')</if> order by idx desc limit #{startIndexNo}, #{pageSize};
+	</select>
+	
+	<insert id="setBoardInput">
+		insert into board2 values (default,#{vo.nickName},#{vo.title},#{vo.email},#{vo.homePage},#{vo.content},default,#{vo.hostIp},default,default,#{vo.mid});
+	</insert>
+	
+	<select id="setBoardContent" resultType="com.spring.javawspring.vo.BoardVO">
+		select * from board2 where idx = #{idx};
+	</select>
+	
+	<update id="setBoardReadNum">
+		update board2 set readNum = readNum + 1 where idx = #{partIdx};
+	</update>
+	
+	<!-- good2 DB에 방문자와 계시판 idx 조회 후 있으면 count(*)로 숫자 가져옴  -->
+	<select id="getGoodCheck" resultType="int">
+		select count(*) from good2 where mid = #{sMid} and partIdx = #{partIdx} and part = #{part} ;
+	</select>
+	<!-- good2 DB에 방문자와 계시판idx 조회후 숫자 있으면 goodCheck 가져옴 -->
+	<select id="getGoodCheckOk" resultType="int">
+		select goodCheck from good2 where mid = #{sMid} and partIdx = #{partIdx} and part =#{part};
+	</select>
+	<!-- good2 DB에 방문자와 계시판idx 조회후 없으면 insert로 값 넣어줌 -->
+	<insert id="inputGoodCheck">
+		insert into good2 values (default, #{sMid}, #{partIdx}, #{part}, 0); 
+	</insert>
+	
+	<!-- good2 DB 좋아요 체크 (1 : on  0 : off)-->
+	<update id="setBoardGoodCheck">
+		<if test="su == 1">
+			update good2 set goodCheck=1 where mid=#{sMid} and partIdx=#{partIdx} and part = #{part};
+		</if>
+		<if test="su == 0">
+			update good2 set goodCheck=0 where mid=#{sMid} and partIdx=#{partIdx} and part = #{part};
+		</if> 
+	</update>
+	<!-- board2 DB 좋아요 up down  -->
+	<update id="setBoardGoodUpDown">
+		<if test="su == 1">
+			update board2 set good = good+1 where idx=#{partIdx};
+		</if>
+		<if test="su == 0">
+			update board2 set good = good-1 where idx=#{partIdx};
+		</if> 
+	</update>
+	
+	<!-- 다음글 이전글 -->
+	<!-- <![CDATA[idx < 10]]> -->
+	<select id="getPrevNext" resultType="com.spring.javawspring.vo.BoardVO">
+		select idx,title from board2 where idx in (
+		(select idx from board2 where <![CDATA[idx < #{partIdx}]]> order by idx desc limit 1),
+		(select idx from board2 where <![CDATA[idx > #{partIdx}]]> limit 1));
+	</select>
+		
+	<!-- 게시물 삭제 -->
+	<delete id="setBoardDeleteOk">
+		delete from board2 where idx = #{idx};
+	</delete>
+		
+	<!-- 게시물 수정 -->
+	<update id="setBoardUpdateOk">
+		update board2 set title=#{vo.title}, email=#{vo.email}, homePage=#{vo.homePage}, content=#{vo.content}, hostIp=#{vo.hostIp}  where idx = #{vo.idx};
+	</update>
+	<!-- 댓글 입력 -->	
+	<insert id="setBoardReplyInput">
+		insert into boardReply2 values (default,#{replyVo.boardIdx},#{replyVo.mid},#{replyVo.nickName},default,#{replyVo.hostIp},#{replyVo.content},default,#{replyVo.levelOrder},#{replyVo.dcheck});
+	</insert>
+	<!-- 대댓글 입력 -->
+	<insert id="setBoardReplyInput2">
+	    insert into boardReply2 values (default,#{replyVo.boardIdx},#{replyVo.mid},#{replyVo.nickName},default,#{replyVo.hostIp},#{replyVo.content},#{replyVo.level},#{replyVo.levelOrder},#{replyVo.dcheck});
+	</insert>
+	
+	<!-- 댓글 가져오기 -->
+	<select id="getBoardReply" resultType="com.spring.javawspring.vo.BoardReplyVO">
+		select * from boardReply2 where boardIdx = #{partIdx} order by levelOrder;
+	</select>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="setBoardReplyDeleteOk">
+		delete from boardReply2 where idx = #{idx};
+	</delete>
+	
+	<!-- 댓글 max(levelOrder) 가져오기 -->
+	<select id="getMaxLevelOrder" resultType="com.spring.javawspring.vo.BoardReplyVO">
+		select max(dcheck) as dcheck, max(levelOrder) as maxlevelOrder, max(level) as maxlevel from boardReply2 where boardIdx = #{boardIdx};
+	</select>
+	
+	<update id="setLevelOrderPlusUpdate">
+		update boardReply2 set levelOrder = levelOrder + 1 where boardIdx = #{replyVo.boardIdx} and levelOrder > #{replyVo.levelOrder};
+	</update>
+	
+	<!-- 댓글 dcheck 가져오기 -->
+	<select id="getDchecks" resultType="com.spring.javawspring.vo.BoardReplyVO">
+		select idx,boardIdx,level, count(*) as dcheckSu from boardReply2 where boardIdx=#{partIdx} group by dcheck ;
+	</select>
+</mapper>

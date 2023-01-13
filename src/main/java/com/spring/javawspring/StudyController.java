@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.spring.javawspring.common.ARIAUtil;
 import com.spring.javawspring.common.SecurityUtil;
@@ -207,7 +208,7 @@ public class StudyController {
 	
 	@RequestMapping(value="/mail/mailForm", method=RequestMethod.GET)
 	public String mailFormGet(Model model, String email) {
-		List<MemberVO> vos = memberService.getMemberList(0,1000);
+		List<MemberVO> vos = memberService.getMemberList(0,1000,"","");
 		// vos = studyService.getMemberEmail();
 		model.addAttribute("vos",vos);
 		model.addAttribute("cnt",vos.size());
@@ -291,5 +292,19 @@ public class StudyController {
 	public String uuidFormPost() {
 		UUID uid = UUID.randomUUID();
 		return uid.toString();
+	}
+	
+	// 파일 업로드 폼
+	@RequestMapping(value = "/fileUpload/fileUploadForm", method = RequestMethod.GET)
+	public String fileUploadFormGet() {
+		return "study/fileUpload/fileUploadForm";
+	}
+	
+	// 파일 업로드 처리하기
+	@RequestMapping(value = "/fileUpload/fileUploadForm", method = RequestMethod.POST)
+	public String fileUploadFormPost(MultipartFile fName) {
+		int res = studyService.fileUpload(fName);
+		if(res==1) return "redirect:/msg/fileUploadOk";
+		else return "redirect:/msg/fileUploadNo";
 	}
 }

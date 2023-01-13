@@ -1,6 +1,5 @@
 package com.spring.javawspring;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.Cookie;
@@ -16,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.spring.javawspring.pagination.PageProcess;
 import com.spring.javawspring.pagination.PageVO;
 import com.spring.javawspring.service.MemberService;
-import com.spring.javawspring.vo.GuestVO;
 import com.spring.javawspring.vo.MemberVO;
 
 @Controller
@@ -57,7 +56,7 @@ public class MemberController {
 		
 		MemberVO vo = memberService.getMemberIdCheck(mid);
 		
-		if(vo != null && passwordEncoder.matches(pwd, vo.getPwd()) && !vo.getUserDel().equals("NO")) {
+		if(vo != null && passwordEncoder.matches(pwd, vo.getPwd()) && !vo.getUserDel().equals("ok")) {
 			// 회원 인증처리된 경우 수행할 내용? strLevel처리, session에 필요한 자료를 저장, 쿠키값 처리, 그날 방문자수 1 증가(방문포인트도 증가), ..
 			String strLevel = "";
 			if(vo.getLevel() == 0) strLevel = "관리자";
@@ -126,7 +125,7 @@ public class MemberController {
 	
 	// 회원가입처리
 	@RequestMapping(value = "/memberJoin", method=RequestMethod.POST)
-	public String memberJoinPost(MemberVO vo) {
+	public String memberJoinPost(MultipartFile fName, MemberVO vo) {
 		//System.out.println("memberVo : " + vo);
 		// 아이디 체크
 		if(memberService.getMemberIdCheck(vo.getMid()) != null) {
@@ -140,13 +139,14 @@ public class MemberController {
 		// 비밀번호 암호화(BCryptPasswordEncoder)
 		vo.setPwd(passwordEncoder.encode(vo.getPwd()));
 		
-		// 체크가 완료되면 vo에 담긴 자료를 DB에 저장시켜준다. (회원 가입)
-		int res = memberService.setMemberJoinOk(vo);
-		System.out.println("res = "+ res );
+		// 체크가 완료되면 사진파일 업로드 후, vo에 담긴 자료를 DB에 저장시켜준다. (회원 가입) - 서비스객체에서 수행처리했다.
+		int res = memberService.setMemberJoinOk(fName, vo);
+		
 		if(res == 1) return "redirect:/msg/memberJoinOk"; 
 		else return "redirect:/msg/memberJoinNo";
 	}
 	
+	// 아이디 중복검사
 	@ResponseBody
 	@RequestMapping(value = "/memberIdCheck", method=RequestMethod.POST)
 	public String memberIdCheckPost(String mid) {
@@ -159,8 +159,8 @@ public class MemberController {
 	}
 	
 	@ResponseBody
-	@RequestMapping(value = "/memberNickCheck", method=RequestMethod.POST)
-	public String memberNickCheckPost(String nickName) {
+	@RequestMapping(value = "/memberNickCheck", method=RequestMethod.GET)
+	public String memberNickCheckGet(String nickName) {
 		String res ="0";
 		MemberVO vo = memberService.getMemberNickCheck(nickName);
 		
@@ -264,17 +264,17 @@ public class MemberController {
 	// Pagination 이용하기....
 	@RequestMapping(value= "/memberList", method = RequestMethod.GET)
 	public String memberListGet(Model model,
-			@RequestParam(name="mid", defaultValue="",required = false) String mid,
-			@RequestParam(name="pag", defaultValue="1",required = false) int pag,
-			@RequestParam(name="pageSize", defaultValue ="3", required = false) int pageSize
+			@RequestParam(name="mid", defaultValue = "", required = false) String mid,
+			@RequestParam(name="pag", defaultValue = "1", required = false) int pag,
+			@RequestParam(name="pageSize", defaultValue = "3", required = false) int pageSize
 			) {
-		PageVO pageVO = pageProcess.totRecCnt(pag, pageSize, "member", "","");
+		PageVO pageVO = pageProcess.totRecCnt(pag, pageSize, "member", "", mid);
 		
-		List<MemberVO> vos = memberService.getMemberList(pageVO.getStartIndexNo(), pageSize);
-		
+		List<MemberVO> vos = memberService.getMemberList(pageVO.getStartIndexNo(), pageSize,"", mid);
 		
 		model.addAttribute("vos", vos);
 		model.addAttribute("pageVO", pageVO);
+		model.addAttribute("mid",mid);
 		
 		return "member/memberList";
 	}
@@ -292,8 +292,47 @@ public class MemberController {
 		if(res != 0 ) {
 			memberService.imsiPwd(email,mid);
 		}
-		System.out.println("res = " + res);
 		return res;
+	}
+	// 아이디 찾기
+	@ResponseBody
+	@RequestMapping(value = "/memberIdSearch", method=RequestMethod.POST)
+	public String memberIdSearchPost(String email, String name) {
+		String mid = memberService.getMemberIDSearch(email,name);
+		return mid;
+	}
+	//비밀번호 변경 폼
+	@RequestMapping(value = "/memberPwdUpdate", method=RequestMethod.GET)
+	public String memberPwdUpdateGet() {
+		return "member/memberPwdUpdate";
+	}
+	
+	//비밀번호 변경 하기
+	@RequestMapping(value = "/memberPwdUpdate", method=RequestMethod.POST)
+	public String memberPwdUpdatePost(HttpSession session, String mid, String pwd) {
+		memberService.memberPwdUpdate(mid, passwordEncoder.encode(pwd));
+		session.invalidate();
+		return "redirect:/msg/memberPwdUpdateOk";
+	}
+	//회원 탈퇴 폼
+	@RequestMapping(value = "/memberDelete", method=RequestMethod.GET)
+	public String memberDeleteGet() {
+		return "member/memberDelete";
+	}
+	
+	// 회원 탈퇴하기
+	@RequestMapping(value = "/memberDelete", method=RequestMethod.POST)
+	public String memberDeletPost(HttpSession session, String pwd, String mid) {
+		MemberVO vo = memberService.getMemberIdCheck(mid);
+		if( vo!=null && passwordEncoder.matches(pwd, vo.getPwd()) && !vo.getUserDel().equals("ok")) {
+			memberService.memberDelete(mid);
+			session.invalidate();
+			return "redirect:/msg/memberDeleteOk";
+		}
+		else {
+			return "redirect:/msg/memberDeleteNo";
+		}
 	}
 	
 }
+

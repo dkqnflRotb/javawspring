@@ -20,8 +20,8 @@
 	</update>
 	
 	<select id="totRecCnt" resultType="int">
-		select count(*) from member2;
-	</select>
+		select count(*) from member2 <if test="searchString != ''">where ${part} like concat("%",'${searchString}',"%")</if>;
+	</select> 
 	
 	<select id="totTermRecCnt" resultType="int">
 		<!-- <if test="mid == ''">
@@ -30,7 +30,7 @@
 		<if test="mid != ''">
 			select count(*) from member2 where mid like concat('%',${mid},'%');
 		</if> -->
-			select count(*) from member2 <if test="mid != ''">where mid like concat('%',${mid},'%')</if>;
+			select count(*) from member2 <if test="mid != ''">where mid like concat('%','${mid}','%')</if>;
 	</select>
 	
 	<select id="getTermGuestList" resultType="com.spring.javawspring.vo.MemberVO">
@@ -40,11 +40,11 @@
 		<if test="mid != ''">
 			select * from member2 where mid like concat('%',${mid},'%') order by idx desc limit #{startIndexNo}, #{pageSize};
 		</if> -->
-			select * from member2 <if test="mid != ''">where mid like concat('%',${mid},'%')</if> order by idx desc limit #{startIndexNo}, #{pageSize};
+			select * from member2 <if test="mid != ''">where mid like concat('%','${mid}','%')</if> order by idx desc limit #{startIndexNo}, #{pageSize};
 	</select>
 	
 	<select id="getMemberList" resultType="com.spring.javawspring.vo.MemberVO">
-		select * from member2 order by idx desc limit #{startIndexNo}, #{pageSize};
+		select * from member2 <if test="searchString != ''">where ${part} like concat('%',#{searchString},'%')</if> order by idx desc limit #{startIndexNo}, #{pageSize};
 	</select>
 	
 	
@@ -58,5 +58,17 @@
 	
 	<update id="imsiPwd">
 		update member2 set pwd = #{imsiPwd} where mid = #{mid};
+	</update>
+	
+	<update id="memberPwdUpdate">
+		update member2 set pwd = #{pwd} where mid = #{mid};
+	</update>
+	
+	<select id="getMemberIDSearch" resultType="String">
+		select mid from member2 where email=#{email} and name=#{name};
+	</select>
+	
+	<update id="memberDelete">
+		update member2 set userDel = 'ok' where mid=#{mid}; 
 	</update>
 </mapper>

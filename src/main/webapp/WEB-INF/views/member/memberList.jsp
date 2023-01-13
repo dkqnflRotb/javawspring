@@ -30,7 +30,7 @@
 <p><br/></p>
 <div class="container">
   <h2 class="text-center">
-    <c:if test="${empty mid}">전체 회원 리스트</c:if>
+    <c:if test="${mid==''}">전체 회원 리스트</c:if>
     <c:if test="${!empty mid}"><font color='blue'><b>${mid}</b></font> 회원 리스트(총<font color='red'>${pageVO.curScrStartNo}</font>건)</c:if>
   </h2>
   <br/>
@@ -75,7 +75,7 @@
     <c:if test="${pageVO.curBlock > 0}">
       <li class="page-item"><a class="page-link text-secondary" href="${ctp}/member/memberList?mid=${mid}&pag=${(pageVO.curBlock-1)*pageVO.blockSize + 1}">이전블록</a></li>
     </c:if>
-    <c:forEach var="i" begin="${(pageVO.curBlock)*pageVO.blockSize + 1}" end="${(pageVO.curBlock)*pageVO.blockSize + pageVO.sblockSize}" varStatus="st">
+    <c:forEach var="i" begin="${(pageVO.curBlock)*pageVO.blockSize + 1}" end="${(pageVO.curBlock)*pageVO.blockSize + pageVO.blockSize}" varStatus="st">
       <c:if test="${i <= pageVO.totPage && i == pageVO.pag}">
     		<li class="page-item active"><a class="page-link bg-secondary border-secondary" href="${ctp}/member/memberList?mid=${mid}&pag=${i}">${i}</a></li>
     	</c:if>

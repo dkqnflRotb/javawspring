@@ -18,7 +18,7 @@ public interface MemberDAO {
 
 	public void setMemTotalUpdate(@Param("mid") String mid,@Param("nowTodayPoint") int nowTodayPoint,@Param("todayCnt") int todayCnt);
 
-	public int totRecCnt();
+	public int totRecCnt(@Param("part") String part, @Param("searchString") String searchString);
 
 	public ArrayList<GuestVO> getGuestList(@Param("startIndexNo") int startIndexNo, @Param("pageSize") int pageSize);
 
@@ -30,6 +30,12 @@ public interface MemberDAO {
 
 	public ArrayList<GuestVO> getTermGuestList(@Param("startIndexNo") int startIndexNo, @Param("pageSize") int pageSize, @Param("mid") String mid);
 
-	public List<MemberVO> getMemberList(@Param("startIndexNo") int startIndexNo, @Param("pageSize") int pageSize);
+	public List<MemberVO> getMemberList(@Param("startIndexNo") int startIndexNo, @Param("pageSize") int pageSize, @Param("part") String part,@Param("searchString") String searchString);
+
+	public void memberPwdUpdate(@Param("mid") String mid, @Param("pwd") String pwd);
+
+	public String getMemberIDSearch(@Param("email") String email, @Param("name") String name);
+
+	public int memberDelete(@Param("mid") String mid);
 
 }

@@ -44,19 +44,19 @@
 		<tr>
 		  <td class="text-right">
 		    <!-- 첫페이지 / 이전페이지 / (현페이지번호/총페이지수) / 다음페이지 / 마지막페이지 -->
-		    <c:if test="${pag > 1}">
+		    <c:if test="${pageVo.pag > 1}">
 		      [<a href="${ctp}/guest/guestList?pag=1">첫페이지</a>]
-		      [<a href="${ctp}/guest/guestList?pag=${pag-1}">이전페이지</a>]
+		      [<a href="${ctp}/guest/guestList?pag=${pageVo.pag-1}">이전페이지</a>]
 		    </c:if>
-		    ${pag}/${totPage}
-		    <c:if test="${pag < totPage}">
-		      [<a href="${ctp}/guest/guestList?pag=${pag+1}">다음페이지</a>]
-		      [<a href="${ctp}/guest/guestList?pag=${totPage}">마지막페이지</a>]
+		    ${pageVo.pag}/${pageVo.totPage}
+		    <c:if test="${pageVo.pag < pageVo.totPage}">
+		      [<a href="${ctp}/guest/guestList?pag=${pageVo.pag+1}">다음페이지</a>]
+		      [<a href="${ctp}/guest/guestList?pag=${pageVo.totPage}">마지막페이지</a>]
 		    </c:if>
 		  </td>
 		</tr>
   </table>
-	  <c:set var="curScrStartNo" value="${curScrStartNo}"/>
+	  <c:set var="curScrStartNo" value="${pageVo.curScrStartNo}"/>
   	<c:forEach var="vo" items="${vos}" varStatus="st" >
 	  	<table class="table table-borderless mb-0">
 	  	<tr>
@@ -99,27 +99,27 @@
 		<!-- 첫페이지 / 이전블록 / 1(4) 2(5) 3(6) / 다음블록 / 마지막페이지 -->
 		<div class="text-center">
 			<ul class="pagination justify-content-center">
-				<c:if test="${pag > 1}">
+				<c:if test="${pageVo.pag > 1}">
 					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=1">첫페이지</a></li>
 				</c:if>
-				<c:if test="${curBlock > 0}">
-					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${(curBlock-1)*blockSize + 3}">이전페이지</a></li>
+				<c:if test="${pageVo.curBlock > 0}">
+					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${(pageVo.curBlock-1)*pageVo.blockSize + 3}">이전페이지</a></li>
 				</c:if>
 				
-				<c:forEach var="i" begin="${(curBlock*blockSize) + 1}" end="${(curBlock*blockSize) +blockSize}" varStatus="st">
-					<c:if test="${i <= totPage && i == pag}">
+				<c:forEach var="i" begin="${(pageVo.curBlock*pageVo.blockSize) + 1}" end="${(pageVo.curBlock*pageVo.blockSize) +pageVo.blockSize}" varStatus="st">
+					<c:if test="${i <= pageVo.totPage && i == pageVo.pag}">
 						<li class="page-item active"><a class="page-link bg-secondary border-secondary" href="${ctp}/guest/guestList?pag=${i}">${i}</a></li>
 					</c:if>
-					<c:if test="${i <= totPage && i != pag}">
+					<c:if test="${i <= pageVo.totPage && i != pageVo.pag}">
 						<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${i}">${i}</a></li>
 					</c:if>
 				</c:forEach> 
 				
-				<c:if test="${curBlock < lastBlock}">
-					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${(curBlock+1)*blockSize + 1}">다음페이지</a></li>
+				<c:if test="${pageVo.curBlock < pageVo.lastBlock}">
+					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${(pageVo.curBlock+1)*pageVo.blockSize + 1}">다음페이지</a></li>
 				</c:if>
-				<c:if test="${pag < totPage}">
-					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${totPage}">마지막페이지</a></li>
+				<c:if test="${pageVo.pag < pageVo.totPage}">
+					<li class="page-item"><a class="page-link text-secondary" href="${ctp}/guest/guestList?pag=${pageVo.totPage}">마지막페이지</a></li>
 				</c:if>
 			</ul>
 		</div>
